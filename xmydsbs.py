@@ -32,7 +32,7 @@ requests.packages.urllib3.disable_warnings()
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
 Script_Change = "手机号本地刷或使用api、邮箱使用api 缝合版本适配青龙通知"
-Script_Version = "0.0.1"
+Script_Version = "0.0.2"
 # --------------------------------------------------------------------------------------------
 async def start():
     global ckArr,step
@@ -42,7 +42,14 @@ async def start():
         
         step_name = f"{Name_Pinyin}_step"
         if step_name in os.environ:
-            step = str(os.environ[f"{Name_Pinyin}_step"])
+            _step = os.environ[f"{Name_Pinyin}_step"]
+            if _step.isdigit():
+                msg(f"🥾本次刷步数为{_step}") 
+                step = _step
+            else:    
+                _step = re.findall("\d+", _step)
+                msg(f"🥾本次刷步数为{_step[0]}-{_step[1]}的随机步数") 
+                step = random.randint(int(_step[0]), int(_step[1]))
         else:
             msg("🥾本次刷步数为20000-30000的随机步数") 
             step = str(random.randint(20000,30000))
@@ -51,7 +58,7 @@ async def start():
         if istel:
             await sbs_info(ck[0], ck[1], step)
         else:
-            await sbs_mail_info(ck[0], ck[1], step)
+            await sbs_api_info(ck[0], ck[1], step)
         
 def ql_env(name):
     global ckArr,step
@@ -144,7 +151,7 @@ async def sbs_info(user, password, step):
     login_token,userid = await login(user,password)
     if login_token == 0:
         msg("❌登录失败，即将使用api重试") 
-        await sbs_phone_info(user, password, step)
+        await sbs_api_info(user, password, step)
     else:
         msg("🍗获取login_token和userid成功！")
 
@@ -176,7 +183,7 @@ async def sbs_info(user, password, step):
                     print(err)
 
 #api登录
-async def sbs_phone_info(user, password, step):
+async def sbs_api_info(user, password, step):
     base_url = f"https://apis.jxcxin.cn/api/mi?user={user}&password={password}&step={step}"
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
@@ -185,24 +192,11 @@ async def sbs_phone_info(user, password, step):
     }
     try:
         response = requests.get(base_url, headers=headers).json()
-        user = user.split("&")[0]
-        result = f"🎈手机账号*******{user[-4:]}: 修改步数（{step}）"+ response['msg']
-        msg(result) 
-    except Exception as err:
-            print(err)
-
-#api登录
-async def sbs_mail_info(user, password, step):
-    base_url = f"https://apis.jxcxin.cn/api/mi?user={user}&password={password}&step={step}"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
-        'host': 'apis.jxcxin.cn',
-        'Accept': '*/*',
-    }
-    try:
-        response = requests.get(base_url, headers=headers).json()
-        user = user.split("&")[0]
-        result = f"🎈邮箱账号{user[:4]}******: 修改步数（{step}）" + response['msg']
+        istel = re.match(r"^1[35678]\d{9}$", user)
+        if istel:
+            result = f"🎈手机账号*******{user[-4:]}: 修改步数（{step}）"+ response['msg']
+        else:
+            result = f"🎈邮箱账号{user[:4]}******: 修改步数（{step}）" + response['msg']
         msg(result) 
     except Exception as err:
             print(err) 
