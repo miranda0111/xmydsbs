@@ -9,15 +9,12 @@
     cron: 2 22 * * *    xmydsbs.py
 
     ================== 青龙--配置文件 ==================
-    变量格式: export xmydsbs_data="手机号&密码@邮箱&密码"   ,多账号用 换行 或 @ 分割
+    变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或 @ 分割
              export xmydsbs_step="23333"   或者 "random.randint(20000,30000))"
         
              23333为固定步数写法  random.randint(20000,30000))随机步数写法
 
 """
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 try:
     import requests
@@ -137,7 +134,7 @@ async def get_app_token(login_token):
     except Exception as err:
             print(err)
 
-#主函数
+#登录
 async def sbs_info(user, password, step):
     user = str(user)
     password = str(password)
@@ -178,6 +175,7 @@ async def sbs_info(user, password, step):
             except Exception as err:
                     print(err)
 
+#api登录
 async def sbs_phone_info(user, password, step):
     base_url = f"https://apis.jxcxin.cn/api/mi?user={user}&password={password}&step={step}"
     headers = {
@@ -193,6 +191,7 @@ async def sbs_phone_info(user, password, step):
     except Exception as err:
             print(err)
 
+#api登录
 async def sbs_mail_info(user, password, step):
     base_url = f"https://apis.jxcxin.cn/api/mi?user={user}&password={password}&step={step}"
     headers = {
