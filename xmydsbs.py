@@ -9,7 +9,7 @@
     cron: 2 22 * * *    xmydsbs.py
 
     ================== 青龙--配置文件 ==================
-    变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或 @ 分割
+    变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或  # 分割
              export xmydsbs_step="23333"   或者 "20000,30000"
         
              23333为固定步数写法  20000,30000随机步数写法
@@ -31,8 +31,8 @@ requests.packages.urllib3.disable_warnings()
 # --------------------------------------------------------------------------------------------
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
-Script_Change = "手机号本地刷或使用api、邮箱使用api 缝合版本适配青龙通知"
-Script_Version = "0.0.2"
+Script_Change = "手机号本地刷或使用api、邮箱使用api 缝合各大网络平台上的版本，适配青龙环境变量、通知和版本更新等"
+Script_Version = "0.1.1"
 # --------------------------------------------------------------------------------------------
 async def start():
     global ckArr,step
@@ -200,7 +200,28 @@ async def sbs_api_info(user, password, step):
         msg(result) 
     except Exception as err:
             print(err) 
+
+# ====================================================================
+def last_version(name, mold):
+    url = ''
+    if mold == 1:
+        url = f"https://github.com/miranda0111/xmydsbs/blob/main//{name}.py"
     
+    try:
+        _url = url
+        _headers = {}
+        resp = requests.get(url=_url, headers=_headers, verify=False)
+        result = resp.text
+        resp.close()
+        r = re.compile(r'Script_Version = "(.*?)"')
+        _data = r.findall(result)
+        if not _data:
+            return "出现未知错误 ,请稍后重试!"
+        else:
+            return _data[0]
+    except Exception as err:
+        print(err)
+        
 # 通知服务
 class Msg(object):
     def __init__(self, m=''):
@@ -274,8 +295,8 @@ def tip():
     print("============ 具体教程以请自行查看顶部教程 =============\n")
     
     msg(f"🔔 {Script_Name} ,开始! ")
-    # origin_version = last_version(Name_Pinyin, 1)
-    # msg(f"📌 本地脚本: {Script_Version}      远程仓库版本: V {origin_version}")
+    origin_version = last_version(Name_Pinyin, 1)
+    msg(f"📌 本地脚本: {Script_Version}      远程仓库版本: V {origin_version}")
     msg(f"📌 本地脚本版本: {Script_Version}")
     msg(f"📌 🆙 更新内容: {Script_Change}")
     msg(f"共发现 {str(len(ckArr))} 个账号")
