@@ -1,5 +1,5 @@
 # xmydsbs
-小米运动刷步数 青龙 版本
+小米运动刷步数 青龙 版本，拉库变量说明都在脚本里面！
 
 [![mmi's github stats](https://github-readme-stats.vercel.app/api?username=miranda0111&show_icons=true)](https://github.com/miranda0111)
 
