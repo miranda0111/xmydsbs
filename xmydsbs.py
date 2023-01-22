@@ -205,8 +205,8 @@ async def sbs_api_info(user, password, step):
 def last_version(name, mold):
     url = ''
     if mold == 1:
-        url = f"https://github.com/miranda0111/xmydsbs/blob/main//{name}.py"
-    
+        url = f"https://raw.gh.fakev.cn/miranda0111/xmydsbs/main//{name}.py"
+        
     try:
         _url = url
         _headers = {}
@@ -296,7 +296,10 @@ def tip():
     
     msg(f"🔔 {Script_Name} ,开始! ")
     origin_version = last_version(Name_Pinyin, 1)
-    msg(f"📌 本地脚本: {Script_Version}      远程仓库版本: V {origin_version}")
+    msg(f"📌 本地脚本: {Script_Version}    远程仓库版本: V {origin_version}")
+    if Script_Version == origin_version:
+        msg('📌 📌 📌 发现版本更新！请尽快更新！📌 📌 📌 ')
+        msg('📌感谢@yml2213的镜像站')
     msg(f"📌 本地脚本版本: {Script_Version}")
     msg(f"📌 🆙 更新内容: {Script_Change}")
     msg(f"共发现 {str(len(ckArr))} 个账号")
