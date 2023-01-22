@@ -302,12 +302,13 @@ def tip():
     msg(f"🔔 {Script_Name} ,开始! ")
     origin_version = last_version(Name_Pinyin, 1)
     msg(f"📌 本地脚本: {Script_Version}       远程仓库版本: {origin_version}")
-    if not Script_Version is str(origin_version):
+    if str(Script_Version) == str(origin_version):
+        msg(f"📌 🆙 脚本版本一致，完成内容: {Script_Change}")
+    else:
         msg('📌 📌 📌 发现版本更新！请尽快更新！📌 📌 📌 ')
         msg(f"📌 🆙 更新内容: {Script_Change}")
         msg('📌感谢@yml2213的镜像站')
-    else:
-        msg(f"📌 🆙 脚本版本一致，完成内容: {Script_Change}")
+    
     msg(f"📌 本地脚本版本: {Script_Version}")
     msg(f"共发现 {str(len(ckArr))} 个账号")
 
