@@ -9,6 +9,11 @@
     cron: 2 22 * * *    xmydsbs.py
 
     ================== 青龙--配置文件 ==================
+    拉库：https://github.com/miranda0111/xmydsbs.git "xmydsbs" "" "sendNotify"
+    ql repo <repourl> <path> <blacklist> <dependence> <branch>
+    对应意思“库地址”“拉哪些”“不拉哪些”“依赖文件”“分支”
+    拉取(js py ts)后缀的请在青龙 配置文件 config.sh 文件中修改
+    
     变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或  # 分割
              export xmydsbs_step="23333"   或者 "20000,30000"
         
@@ -296,16 +301,18 @@ def tip():
     
     msg(f"🔔 {Script_Name} ,开始! ")
     origin_version = last_version(Name_Pinyin, 1)
-    msg(f"📌 本地脚本: {Script_Version}    远程仓库版本: V {origin_version}")
-    if Script_Version == origin_version:
+    msg(f"📌 本地脚本: {Script_Version}       远程仓库版本: {origin_version}")
+    if Script_Version is str(origin_version):
         msg('📌 📌 📌 发现版本更新！请尽快更新！📌 📌 📌 ')
+        msg(f"📌 🆙 更新内容: {Script_Change}")
         msg('📌感谢@yml2213的镜像站')
+    else:
+        msg(f"📌 🆙 脚本版本一致，完成内容: {Script_Change}")
     msg(f"📌 本地脚本版本: {Script_Version}")
-    msg(f"📌 🆙 更新内容: {Script_Change}")
     msg(f"共发现 {str(len(ckArr))} 个账号")
 
 if __name__ == '__main__':
     global ckArr, step, msg_info, send
     tip()
-    asyncio.run(start())
+    # asyncio.run(start())
     send(f"{Script_Name}", msg_info)
