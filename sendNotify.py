@@ -546,7 +546,7 @@ def send(title, content):
     """
 
     content += '\n\n佛系薅羊毛 By yml: https://t.me/yml2213_tg'
-
+    content += '\n\n感谢yml不加密的代码，以供学习！'
     for i in notify_mode:
 
         if i == 'bark':
