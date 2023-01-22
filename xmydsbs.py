@@ -314,5 +314,5 @@ def tip():
 if __name__ == '__main__':
     global ckArr, step, msg_info, send
     tip()
-    # asyncio.run(start())
+    asyncio.run(start())
     send(f"{Script_Name}", msg_info)
