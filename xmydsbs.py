@@ -16,7 +16,7 @@
     
     变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或  # 分割
              export xmydsbs_step="23333"   或者 "20000,30000"
-             export xmydsbs_api=False    禁用api（默认True开启）该功能未测试，有bug踢一下
+             export xmydsbs_api="False"   禁用api（默认True开启）该功能未测试，有bug踢一下
              
              
              23333为固定步数写法  20000,30000随机步数写法
@@ -158,7 +158,7 @@ async def sbs_info(user, password, step, istel):
     if login_token == 0:
         use_api_name = f"{Name_Pinyin}_api"
         if use_api_name in os.environ:
-            if use_api_name == False:
+            if use_api_name == "False":
                 msg("❌登录失败，即将退出脚本") 
             else:
                 msg("❌登录失败，即将使用api重试") 
