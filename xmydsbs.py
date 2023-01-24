@@ -158,8 +158,9 @@ async def sbs_info(user, password, step, istel):
     if login_token == 0:
         use_api_name = f"{Name_Pinyin}_api"
         if use_api_name in os.environ:
-            if use_api_name == "False":
-                msg("❌登录失败，即将退出脚本") 
+            use_api = os.environ[f"{Name_Pinyin}_api"]
+            if use_api == "false":
+                msg("❌登录失败，退出该账号") 
             else:
                 msg("❌登录失败，即将使用api重试") 
                 await sbs_api_info(user, password, step, istel)
