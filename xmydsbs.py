@@ -16,7 +16,9 @@
     
     变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或  # 分割
              export xmydsbs_step="23333"   或者 "20000,30000"
-        
+             export xmydsbs_api=False    禁用api（默认True开启）该功能未测试，有bug踢一下
+             
+             
              23333为固定步数写法  20000,30000随机步数写法
 
 """
@@ -36,8 +38,8 @@ requests.packages.urllib3.disable_warnings()
 # --------------------------------------------------------------------------------------------
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
-Script_Change = "手机号本地刷或使用api、邮箱使用api 缝合各大网络平台上的版本，适配青龙环境变量、通知和版本更新等"
-Script_Version = "0.1.1"
+Script_Change = "手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
+Script_Version = "1.0.1"
 # --------------------------------------------------------------------------------------------
 async def start():
     global ckArr,step
@@ -60,10 +62,7 @@ async def start():
             step = str(random.randint(20000,30000))
         
         istel = re.match(r"^1[35678]\d{9}$", ck[0])
-        if istel:
-            await sbs_info(ck[0], ck[1], step)
-        else:
-            await sbs_api_info(ck[0], ck[1], step)
+        await sbs_info(ck[0], ck[1], step, istel)
         
 def ql_env(name):
     global ckArr,step
@@ -86,11 +85,13 @@ def get_code(location):
     return code
 
 #登录
-async def login(user,password):
-    registrations_url = "https://api-user.huami.com/registrations/+86" + user + "/tokens"
+async def login(user, password, istel):
+    if istel:
+        user = "+86" + user
+    registrations_url = "https://api-user.huami.com/registrations/" + user + "/tokens"
     headers = {
         "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8",
-        "User-Agent":"MiFit/4.6.0 (iPhone; iOS 14.0.1; Scale/2.00)"
+        "User-Agent":"MiFit/6.3.5 (iPhone; iOS 14.0.1; Scale/2.00)"
         }
     data1 = {
         "client_id":"HuaMi",
@@ -119,7 +120,7 @@ async def login(user,password):
             "device_id":"2C8B4939-0CCD-4E94-8CBA-CB8EA6E613A1",
             "device_model":"phone",
             "grant_type":"access_token",
-            "third_name":"huami_phone",
+            "third_name":"huami_phone" if istel != None else "email"
             } 
         try:
             res = requests.post(login_url,data=data2,headers=headers).json()
@@ -137,7 +138,7 @@ def gettimestamp():
 async def get_app_token(login_token):
     url = f"https://account-cn.huami.com/v1/client/app_tokens?app_name=com.xiaomi.hm.health&dn=api-user.huami.com%2Capi-mifit.huami.com%2Capp-analytics.huami.com&login_token={login_token}"
     headers = {
-        'User-Agent': 'MiFit/4.6.0 (iPhone; iOS 14.0.1; Scale/2.00)'
+        'User-Agent': 'MiFit/6.3.5 (iPhone; iOS 14.0.1; Scale/2.00)'
         }
     try:
         res = requests.get(url,headers=headers).json()
@@ -147,16 +148,24 @@ async def get_app_token(login_token):
             print(err)
 
 #登录
-async def sbs_info(user, password, step):
+async def sbs_info(user, password, step, istel):
     user = str(user)
     password = str(password)
     step = str(step)
 
     login_token = 0
-    login_token,userid = await login(user,password)
+    login_token,userid = await login(user, password, istel)
     if login_token == 0:
-        msg("❌登录失败，即将使用api重试") 
-        await sbs_api_info(user, password, step)
+        use_api_name = f"{Name_Pinyin}_api"
+        if use_api_name in os.environ:
+            if use_api_name == False:
+                msg("❌登录失败，即将退出脚本") 
+            else:
+                msg("❌登录失败，即将使用api重试") 
+                await sbs_api_info(user, password, step, istel)
+        else:
+            msg("❌登录失败，即将使用api重试") 
+            await sbs_api_info(user, password, step, istel)
     else:
         msg("🍗获取login_token和userid成功！")
 
@@ -182,13 +191,14 @@ async def sbs_info(user, password, step):
             data = f'userid={userid}&last_sync_data_time=1597306380&device_type=0&last_deviceid=DA932FFFFE8816E7&data_json={data_json}'
             try:
                 response = requests.post(url, data=data, headers=head).json()
-                result = f"🎈手机账号*******{user[-4:]}: 修改步数（{step}）"+ response['message']
+                _type = f"手机账号*******{user[-4:]}" if istel != None else f"邮箱账号{user[:4]}*******"
+                result = f"🎈{_type}: 修改步数{step} "+ response['message']
                 msg(result) 
             except Exception as err:
                     print(err)
 
 #api登录
-async def sbs_api_info(user, password, step):
+async def sbs_api_info(user, password, step ,istel):
     base_url = f"https://apis.jxcxin.cn/api/mi?user={user}&password={password}&step={step}"
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
@@ -197,11 +207,8 @@ async def sbs_api_info(user, password, step):
     }
     try:
         response = requests.get(base_url, headers=headers).json()
-        istel = re.match(r"^1[35678]\d{9}$", user)
-        if istel:
-            result = f"🎈手机账号*******{user[-4:]}: 修改步数（{step}）"+ response['msg']
-        else:
-            result = f"🎈邮箱账号{user[:4]}******: 修改步数（{step}）" + response['msg']
+        _type = f"手机账号*******{user[-4:]}" if istel != None else f"邮箱账号{user[:4]}*******"
+        result = f"🎈{_type}: 修改步数{step} "+ response['msg']
         msg(result) 
     except Exception as err:
             print(err) 
@@ -211,7 +218,6 @@ def last_version(name, mold):
     url = ''
     if mold == 1:
         url = f"https://raw.gh.fakev.cn/miranda0111/xmydsbs/main//{name}.py"
-        
     try:
         _url = url
         _headers = {}
