@@ -16,7 +16,7 @@
     
     变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或  # 分割
              export xmydsbs_step="23333"   或者 "20000,30000"
-             export xmydsbs_api="false"   禁用api（默认开启）
+             export xmydsbs_api="false"   禁用api（默认开启，如要取消请注释）
              
              
              23333为固定步数写法  20000,30000随机步数写法
