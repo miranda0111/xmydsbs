@@ -3,7 +3,7 @@
 """
 
     link: https://raw.githubusercontent.com/miranda0111/xmydsbs/main/xmydsbs.py
-    Name: 小米运动刷步数
+    Name: 刷步数
     Author: miranda0111
     Date: Fri Jan 20 
     cron: 2 22 * * *    xmydsbs.py
@@ -38,16 +38,19 @@ requests.packages.urllib3.disable_warnings()
 # --------------------------------------------------------------------------------------------
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
-Script_Change = "多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
-Script_Version = "1.0.2"
+Script_Change = "提交成功统计优化标题栏通知，多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
+Script_Version = "1.0.3"
 # --------------------------------------------------------------------------------------------
 async def start():
-    global ckArr,step
+    global ckArr,step,count_success_dict
     if f"{Name_Pinyin}_sleep" in os.environ and str(os.environ[f"{Name_Pinyin}_sleep"]).isdigit(): 
         sleepTime = int(os.environ[f"{Name_Pinyin}_sleep"])  
     else: 
         sleepTime = 10  # 默认休眠时间 10秒
     msg(f"📌 本次刷步数脚本休眠时间为 {sleepTime} 秒") 
+
+    count_success_dict = {'success': 0, '步数提交成功': 0} #response返回的字符串，api增加可以修改该字典值
+
     for inx, data in enumerate(ckArr):
         msg("============= 开始第" + str(inx + 1) + "个账号 =============")
         ck = data.split("&")
@@ -68,6 +71,7 @@ async def start():
         
         istel = re.match(r"^1[35678]\d{9}$", ck[0])
         await sbs_info(ck[0], ck[1], step, istel)
+
         time.sleep(sleepTime)
         
 def ql_env(name):
@@ -155,6 +159,7 @@ async def get_app_token(login_token):
 
 #登录
 async def sbs_info(user, password, step, istel):
+    global count_success_dict
     user = str(user)
     password = str(password)
     step = str(step)
@@ -200,12 +205,15 @@ async def sbs_info(user, password, step, istel):
                 response = requests.post(url, data=data, headers=head).json()
                 _type = f"手机账号*******{user[-4:]}" if istel != None else f"邮箱账号{user[:4]}*******"
                 result = f"🎈{_type}: 修改步数{step} "+ response['message']
-                msg(result) 
+                msg(result)  
+                if response['message'] in count_success_dict:#统计
+                    count_success_dict[response['message']] += 1
             except Exception as err:
                     print(err)
 
 #api登录
 async def sbs_api_info(user, password, step ,istel):
+    global count_success_dict
     base_url = f"https://apis.jxcxin.cn/api/mi?user={user}&password={password}&step={step}"
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
@@ -217,6 +225,8 @@ async def sbs_api_info(user, password, step ,istel):
         _type = f"手机账号*******{user[-4:]}" if istel != None else f"邮箱账号{user[:4]}*******"
         result = f"🎈{_type}: 修改步数{step} "+ response['msg']
         msg(result) 
+        if response['msg'] in count_success_dict:#统计
+            count_success_dict[response['msg']] += 1
     except Exception as err:
             print(err) 
 
@@ -250,7 +260,7 @@ class Msg(object):
     def get_sendnotify(self):
         if not os.path.exists("sendNotify.py"):
             cur_path = os.getcwd()
-            print(f"未找到通知依赖文件,将于脚本执行目录({cur_path})新建:sendNotify.py ")
+            print(f"未找到通知依赖文件,将于脚本执行目录({cur_path})新建:sendNotify.py (url为https://raw.githubusercontent.com/)")
             try:
                 url = 'https://raw.githubusercontent.com/miranda0111/xmydsbs/main/sendNotify.py'
                 response = requests.get(url)
@@ -310,15 +320,15 @@ ql_env(f"{Name_Pinyin}_data")
 
 def tip():
     print("================ 脚本只支持青龙新版 =================")
-    print("============ 具体教程以请自行查看顶部教程 =============\n")
+    print("============ 具体教程以请自行查看顶部教程 =============")
     
-    msg(f"🔔 {Script_Name} ,开始! ")
+    msg(f"🔔 {Script_Name}，开始! ")
     origin_version = last_version(Name_Pinyin, 1)
-    msg(f"📌 本地脚本: {Script_Version}       远程仓库版本: {origin_version}")
+    msg(f"📌 本地脚本: {Script_Version}\n    远程仓库版本: {origin_version}")
     if str(Script_Version) == str(origin_version):
         msg(f"📌 🆙 脚本版本一致，完成内容: {Script_Change}")
     else:
-        msg('📌 📌 📌 发现版本更新！请尽快更新！📌 📌 📌 ')
+        msg('📌 📌 📌 发现版本更新！请尽快更新！📌 📌 📌 \n')
         msg(f"📌 🆙 更新内容: {Script_Change}")
         msg('📌感谢@yml2213的镜像站')
     
@@ -326,7 +336,12 @@ def tip():
     msg(f"📌 共发现 {str(len(ckArr))} 个账号")
 
 if __name__ == '__main__':
-    global ckArr, step, msg_info, send
+    global ckArr, step, msg_info, send, count_success_dict
     tip()
     asyncio.run(start())
-    send(f"{Script_Name}", msg_info)
+    print(count_success_dict)
+    if int(len(ckArr)) == count_success_dict['success'] + count_success_dict['步数提交成功']:
+        complete = '成功'
+    else:
+        complete = '失败'
+    send(f"{Script_Name}{str(len(ckArr))}个{complete}", msg_info)
