@@ -49,7 +49,7 @@ async def start():
         sleepTime = 10  # 默认休眠时间 10秒
     msg(f"📌 本次刷步数脚本休眠时间为 {sleepTime} 秒") 
     for inx, data in enumerate(ckArr):
-        msg("=============== 开始第" + str(inx + 1) + "个账号 ==============================")
+        msg("============= 开始第" + str(inx + 1) + "个账号 =============")
         ck = data.split("&")
         
         step_name = f"{Name_Pinyin}_step"
