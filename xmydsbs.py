@@ -16,8 +16,8 @@
     
     变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或  # 分割
              export xmydsbs_step="23333"   或者 "20000,30000"
-             export xmydsbs_api="false"   禁用api（默认开启，如要取消请注释）
-             
+             export xmydsbs_api="false"   禁用api（默认开启）
+             export xmydsbs_sleep="10"    脚本暂停10s             
              
              23333为固定步数写法  20000,30000随机步数写法
 
@@ -38,11 +38,16 @@ requests.packages.urllib3.disable_warnings()
 # --------------------------------------------------------------------------------------------
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
-Script_Change = "手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
-Script_Version = "1.0.1"
+Script_Change = "多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
+Script_Version = "1.0.2"
 # --------------------------------------------------------------------------------------------
 async def start():
     global ckArr,step
+    if f"{Name_Pinyin}_sleep" in os.environ and str(os.environ[f"{Name_Pinyin}_sleep"]).isdigit(): 
+        sleepTime = int(os.environ[f"{Name_Pinyin}_sleep"])  
+    else: 
+        sleepTime = 10  # 默认休眠时间 10秒
+    msg(f"⚠⚠⚠本次刷步数脚本休眠时间为{sleepTime}秒") 
     for inx, data in enumerate(ckArr):
         msg("=============== 开始第" + str(inx + 1) + "个账号 ==============================")
         ck = data.split("&")
@@ -63,6 +68,7 @@ async def start():
         
         istel = re.match(r"^1[35678]\d{9}$", ck[0])
         await sbs_info(ck[0], ck[1], step, istel)
+        time.sleep(sleepTime)
         
 def ql_env(name):
     global ckArr,step
