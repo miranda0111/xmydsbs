@@ -14,10 +14,10 @@
     对应意思“库地址”“拉哪些”“不拉哪些”“依赖文件”“分支”
     拉取(js py ts)后缀的请在青龙 配置文件 config.sh 文件中修改
     
-    变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   ,多账号用 换行 或  # 分割
-             export xmydsbs_step="23333"   或者 "20000,30000"
-             export xmydsbs_api="false"   禁用api（默认开启）
-             export xmydsbs_sleep="10"    脚本暂停10s             
+    变量格式: export xmydsbs_data="手机号&密码#邮箱&密码"   多账号用 换行 或  # 分割
+             export xmydsbs_step="23333"                  或者 "20000,30000"
+             export xmydsbs_api="false"                   本地提交失败后禁用api提交（默认开启），注释这行或将改为ture启动api提交
+             export xmydsbs_sleep="10"                    脚本暂停10s             
              
              23333为固定步数写法  20000,30000随机步数写法
 
