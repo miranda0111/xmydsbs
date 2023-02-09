@@ -32,14 +32,16 @@ try:
     import time
     import random
     import asyncio
+    import ssl
 except Exception as e:
     print(e)
 requests.packages.urllib3.disable_warnings()
+ssl._create_default_https_context = ssl._create_unverified_context
 # --------------------------------------------------------------------------------------------
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
-Script_Change = "提交成功统计优化标题栏通知，多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
-Script_Version = "1.0.3"
+Script_Change = "SSLerror优化，提交成功统计优化标题栏通知，多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
+Script_Version = "1.0.4"
 # --------------------------------------------------------------------------------------------
 async def start():
     global ckArr,step,count_success_dict
@@ -101,7 +103,7 @@ async def login(user, password, istel):
     registrations_url = "https://api-user.huami.com/registrations/" + user + "/tokens"
     headers = {
         "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8",
-        "User-Agent":"MiFit/6.3.5 (iPhone; iOS 14.0.1; Scale/2.00)"
+        "User-Agent":"ZeppLife/6.5.6 (iPhone; iOS 16.3; Scale/3.00)"
         }
     data1 = {
         "client_id":"HuaMi",
@@ -111,10 +113,9 @@ async def login(user, password, istel):
         }
     res1 = requests.post(registrations_url,data=data1,headers=headers,allow_redirects=False)
     if str(res1) == '<Response [429]>':
-        msg("❌登录次数过多请稍后")
+        msg("❌登录次数过多，明天再试！")
         login_token = 0
         userid = 0
-        return login_token,userid
     else:
         location = res1.headers["Location"]
         try:
@@ -124,7 +125,7 @@ async def login(user, password, istel):
         login_url = "https://account.huami.com/v2/client/login"
         data2 = {
             "app_name":"com.xiaomi.hm.health",
-            "app_version":"4.6.0",
+            "app_version":"6.3.5",
             "code":f"{code}",
             "country_code":"CN",
             "device_id":"2C8B4939-0CCD-4E94-8CBA-CB8EA6E613A1",
@@ -134,11 +135,16 @@ async def login(user, password, istel):
             } 
         try:
             res = requests.post(login_url,data=data2,headers=headers).json()
-            login_token = res["token_info"]["login_token"]
-            userid = res["token_info"]["user_id"]
-            return login_token,userid
+            if res["token_info"]:
+                login_token = res["token_info"]["login_token"]
+                userid = res["token_info"]["user_id"]
+            else:
+                msg("❌网络错误")
+                login_token = 0
+                userid = 0
         except Exception as err:
                  print(err)
+    return login_token,userid
 
 # 13位时间戳
 def gettimestamp():
@@ -148,7 +154,7 @@ def gettimestamp():
 async def get_app_token(login_token):
     url = f"https://account-cn.huami.com/v1/client/app_tokens?app_name=com.xiaomi.hm.health&dn=api-user.huami.com%2Capi-mifit.huami.com%2Capp-analytics.huami.com&login_token={login_token}"
     headers = {
-        'User-Agent': 'MiFit/6.3.5 (iPhone; iOS 14.0.1; Scale/2.00)'
+        'User-Agent': 'ZeppLife/6.5.6 (iPhone; iOS 16.3; Scale/3.00)'
         }
     try:
         res = requests.get(url,headers=headers).json()
@@ -164,17 +170,11 @@ async def sbs_info(user, password, step, istel):
     password = str(password)
     step = str(step)
 
-    login_token = 0
     login_token,userid = await login(user, password, istel)
     if login_token == 0:
         use_api_name = f"{Name_Pinyin}_api"
-        if use_api_name in os.environ:
-            use_api = os.environ[f"{Name_Pinyin}_api"]
-            if use_api == "false":
-                msg("❌登录失败，退出该账号") 
-            else:
-                msg("❌登录失败，即将使用api重试") 
-                await sbs_api_info(user, password, step, istel)
+        if use_api_name in os.environ and str(os.environ[f"{Name_Pinyin}_api"]) == "false":
+            msg("❌登录失败，退出该账号") 
         else:
             msg("❌登录失败，即将使用api重试") 
             await sbs_api_info(user, password, step, istel)
@@ -203,9 +203,15 @@ async def sbs_info(user, password, step, istel):
             data = f'userid={userid}&last_sync_data_time=1597306380&device_type=0&last_deviceid=DA932FFFFE8816E7&data_json={data_json}'
             try:
                 response = requests.post(url, data=data, headers=head).json()
-                _type = f"手机账号*******{user[-4:]}" if istel != None else f"邮箱账号{user[:4]}*******"
-                result = f"🎈{_type}: 修改步数{step} "+ response['message']
-                msg(result)  
+                if response['message'] == 'invalid token':
+                    msg("❌网络错误，修改步数失败")
+                    await sbs_info(user, password, step, istel)
+                elif response['message'] == 'success':
+                    _type = f"手机账号*******{user[-4:]}" if istel != None else f"邮箱账号{user[:4]}*******"
+                    result = f"🎈{_type}: 修改步数{step} "+ response['message']
+                    msg(result)
+                else:
+                    msg("❌未知错误")  
                 if response['message'] in count_success_dict:#统计
                     count_success_dict[response['message']] += 1
             except Exception as err:
