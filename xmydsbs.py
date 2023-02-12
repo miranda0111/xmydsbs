@@ -40,8 +40,8 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # --------------------------------------------------------------------------------------------
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
-Script_Change = "SSLerror优化，提交成功统计优化标题栏通知，多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
-Script_Version = "1.0.4"
+Script_Change = "优化SSLerror优化，提交成功统计优化标题栏通知，多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
+Script_Version = "1.0.5"
 # --------------------------------------------------------------------------------------------
 async def start():
     global ckArr,step,count_success_dict
@@ -240,7 +240,7 @@ async def sbs_api_info(user, password, step ,istel):
 def last_version(name, mold):
     url = ''
     if mold == 1:
-        url = f"https://raw.gh.fakev.cn/miranda0111/xmydsbs/main//{name}.py"
+        url = f"https://gitee.com/miranda0111/xmydsbs/raw/master/{name}.py"
     try:
         _url = url
         _headers = {}
@@ -266,9 +266,9 @@ class Msg(object):
     def get_sendnotify(self):
         if not os.path.exists("sendNotify.py"):
             cur_path = os.getcwd()
-            print(f"未找到通知依赖文件,将于脚本执行目录({cur_path})新建:sendNotify.py (url为https://raw.githubusercontent.com/)")
+            print(f"未找到通知依赖文件,将于脚本执行目录({cur_path})新建:sendNotify.py (url为https://gitee.com/miranda0111/xmydsbs/raw/master/sendNotify.py)")
             try:
-                url = 'https://raw.githubusercontent.com/miranda0111/xmydsbs/main/sendNotify.py'
+                url = 'https://gitee.com/miranda0111/xmydsbs/raw/master/sendNotify.py'
                 response = requests.get(url)
                 with open('sendNotify.py', "w+", encoding="utf-8") as f:
                     f.write(response.text)
