@@ -41,7 +41,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 Script_Name = "小米运动刷步数"
 Name_Pinyin = "xmydsbs"
 Script_Change = "优化SSLerror优化，提交成功统计优化标题栏通知，多账号之间脚本休眠默认10秒，手机号和邮箱均可本地✔✔✔，若出现❌❌❌会使用默认api提交（可更改），适配青龙环境变量、通知和版本更新等"
-Script_Version = "1.0.5"
+Script_Version = "1.0.6"
 # --------------------------------------------------------------------------------------------
 async def start():
     global ckArr,step,count_success_dict
@@ -121,7 +121,7 @@ async def login(user, password, istel):
         try:
             code = get_code(location)
         except:
-            return 0, 0
+            code = 0
         login_url = "https://account.huami.com/v2/client/login"
         data2 = {
             "app_name":"com.xiaomi.hm.health",
@@ -169,7 +169,8 @@ async def sbs_info(user, password, step, istel):
     user = str(user)
     password = str(password)
     step = str(step)
-
+    login_token = 0
+    userid = 0
     login_token,userid = await login(user, password, istel)
     if login_token == 0:
         use_api_name = f"{Name_Pinyin}_api"
